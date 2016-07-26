@@ -70,7 +70,10 @@ class DuckProcess {
 
   Future sync(String remotePath, String localPath, {SyncOptions handleExisting}) async {}
 
-  Future delete() async {}
+  Future delete(String remoteLocation) async {
+    var args = ["--delete", _url.absolute(remoteLocation)];
+    return runDuck(args);
+  }
 
   ///Copy between servers
   ///remote location 1 = absolute | relative to this.remoteRoot
