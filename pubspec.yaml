@@ -1,0 +1,20 @@
+name: duck_adapter
+version: 0.0.1
+description: A dart library for using duck cli file transfer tool.
+             This library is intended to be used with grinder to allow automated deployments.
+author: Benjamin Jesuiter <bjesuiter@gmail.com>
+homepage: https://github.com/bjesuiter/duck_adapter
+documentation: #leave blank to autogenerate docs
+
+environment:
+  sdk: ">=1.13.2 <2.0.0"
+
+#dependencies:
+
+
+dev_dependencies:
+  test:
+
+#dependency_overrides:
+#  transmogrify:
+#    path: ../transmogrify_patch/
