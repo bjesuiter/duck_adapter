@@ -2,7 +2,7 @@ library duck_adapter.sync_options;
 
 import 'package:enums/enums.dart';
 
-/// Options for how to deal with existing files and folders while syncing
+/// Options to manage how to deal with existing files and folders while syncing
 class SyncOptions extends Enum {
 
   ///Download changed and missing files (download)
