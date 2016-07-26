@@ -58,12 +58,24 @@ class DuckProcess {
     _url = new path.Context(style: path.Style.url, current: remoteRoot);
   }
 
-  Future upload(String remotePath, String localPath, {LoadOptions handleExisting}) async {}
+  Future upload(String remotePath, String localPath, {LoadOptions handleExisting}) async {
+    var args = [
+      "--upload", _url.absolute(remotePath), path.absolute(localPath)
+    ];
+
+    if (handleExisting != null)
+      args..add("--existing")..add(handleExisting.name);
+
+    return runDuck(args);
+  }
 
   Future download(String remotePath, String localPath, {LoadOptions handleExisting}) async {
     var args = [
       "--download", _url.absolute(remotePath), path.absolute(localPath)
     ];
+
+    if (handleExisting != null)
+      args..add("--existing")..add(handleExisting.name);
 
     return runDuck(args);
   }
