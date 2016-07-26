@@ -29,9 +29,13 @@ class DuckProcess {
   String user;
 
   ///identity file for authentication of ssh based storage services
-  ///NOTE: Password auth is not supported right now
   String identityFile;
 
+  ///password or secret for string based secret authentication
+  ///NOTE: identityFile will be preferred
+  String password;
+
+  ///Suppress progress messages
   bool quiet;
 
   ///prints transcript on stdout
@@ -40,16 +44,21 @@ class DuckProcess {
   ///assumes yes for all promts
   bool assume_yes;
 
+  ///Throttle bandwidth <bytes per second>
+  int throttle;
+
   //TODO: Support password authentication as secure as possible
 
   DuckProcess(this.remoteRoot,
       {this.user: "",
       this.externalEditor: "",
       this.identityFile: "",
+      this.password: "",
       this.quiet: true,
       this.verbose: false,
-      this.assume_yes: true}) {
-    //
+      this.assume_yes: true,
+      this.throttle: 0}) {
+    //TODO: add unit support for throttling (KB, MB, GB)
     //
 
     if (path.url.isRelative(remoteRoot) || path.url.isRootRelative(remoteRoot))
@@ -120,6 +129,18 @@ class DuckProcess {
     return runDuck(args);
   }
 
+  ///lists directory content of a remote location
+  ///if longFormat is true, list will provide additional moduification time data and permissions (as mask) for each entry
+  Future listRemote(String remoteLocation, {bool longFormat: false}) {
+    var command = (longFormat) ? "longlist" : "list";
+    var args = [
+      "--$command", _url.absolute(remoteLocation)
+    ];
+
+    return runDuck(args);
+  }
+
+
   ///only to be feature complete
   Future<String> get version async {
     ProcessResult processResult = await runDuck(["--version"], addSessionParams: false);
@@ -139,7 +160,12 @@ class DuckProcess {
 
       if (identityFile.isNotEmpty) {
         args..add("--identity")..add(identityFile);
+      } else if (password.isNotEmpty) {
+        args..add("--password")..add(password);
       }
+
+      if (throttle > 0)
+        args..add("--throttle")..add(throttle.toString());
     }
 
     _log.fine(args.join(" "));
