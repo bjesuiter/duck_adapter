@@ -80,7 +80,17 @@ class DuckProcess {
     return runDuck(args);
   }
 
-  Future sync(String remotePath, String localPath, {SyncOptions handleExisting}) async {}
+  ///Important: syncs two DIRECTORIES!!!
+  Future sync(String remotePath, String localPath, {SyncOptions handleExisting}) async {
+    var args = [
+      "--synchronize", _url.absolute(remotePath), path.absolute(localPath)
+    ];
+
+    if (handleExisting != null)
+      args..add("--existing")..add(handleExisting.name);
+
+    return runDuck(args);
+  }
 
   Future delete(String remoteLocation) async {
     var args = ["--delete", _url.absolute(remoteLocation)];
