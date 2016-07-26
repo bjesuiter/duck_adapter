@@ -24,7 +24,7 @@ class LoadOptions extends Enum {
   static const LoadOptions compare = const LoadOptions._("compare");
 
   ///(cancel)
-  static const LoadOptions cancel = const SyncOptions._("cancel");
+  static const LoadOptions cancel = const LoadOptions._("cancel");
 
   // these two lines are required to add support for values and valueOf
   static LoadOptions valueOf(String name) => Enum.valueOf(LoadOptions, name);
