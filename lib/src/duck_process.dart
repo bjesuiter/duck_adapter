@@ -43,8 +43,12 @@ class DuckProcess {
   //TODO: Support password authentication as secure as possible
 
   DuckProcess(this.remoteRoot,
-      {this.user: "", this.externalEditor: "", this.identityFile: "",
-      this.quiet: true, this.verbose: false, this.assume_yes: true}) {
+      {this.user: "",
+      this.externalEditor: "",
+      this.identityFile: "",
+      this.quiet: true,
+      this.verbose: false,
+      this.assume_yes: true}) {
     //
     //
 
@@ -56,7 +60,13 @@ class DuckProcess {
 
   Future upload(String remotePath, String localPath, {LoadOptions handleExisting}) async {}
 
-  Future download(String remotePath, String localPath, {LoadOptions handleExisting}) async {}
+  Future download(String remotePath, String localPath, {LoadOptions handleExisting}) async {
+    var args = [
+      "--download", _url.absolute(remotePath), path.absolute(localPath)
+    ];
+
+    return runDuck(args);
+  }
 
   Future sync(String remotePath, String localPath, {SyncOptions handleExisting}) async {}
 
@@ -66,12 +76,9 @@ class DuckProcess {
   ///remote location 1 = absolute | relative to this.remoteRoot
   ///remote location 2 = absolute | relative to this.remoteRoot
   Future serverCopy(String remoteLocation1, String remoteLocation2) async {
-
     //_url context knows root url -> matching is not necessary
 
-    var args = [
-      "--copy", _url.absolute(remoteLocation1), _url.absolute(remoteLocation2)
-    ];
+    var args = ["--copy", _url.absolute(remoteLocation1), _url.absolute(remoteLocation2)];
   }
 
   ///Opens the given file in an external editor
@@ -83,10 +90,7 @@ class DuckProcess {
           "No external editor specified. Please specify external editor with optional param in editRemoteFile"
               " or set external editor at DuckProcess construction time");
 
-    var args = [
-      "--application", editor,
-      "--edit", remoteFile
-    ];
+    var args = ["--application", editor, "--edit", remoteFile];
 
     return runDuck(args);
   }
@@ -100,14 +104,17 @@ class DuckProcess {
   Future<ProcessResult> runDuck(List<String> args, {bool addSessionParams: true}) {
     ///add session params
     if (addSessionParams) {
-      if (quiet)
-        args.add("--quiet");
+      if (quiet) args.add("--quiet");
 
-      if (verbose)
-        args.add("--verbose");
+      if (verbose) args.add("--verbose");
 
-      if (assume_yes)
-        args.add("--assumeyes");
+      if (assume_yes) args.add("--assumeyes");
+
+      args..add("--user")..add(user);
+
+      if (identityFile.isNotEmpty) {
+        args..add("--identity")..add(identityFile);
+      }
     }
 
     _log.fine(args.join(" "));
