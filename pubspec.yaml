@@ -15,6 +15,7 @@ environment:
 dev_dependencies:
   test:
   grinder:
+  path:
 
 #dependency_overrides:
 #  transmogrify:
