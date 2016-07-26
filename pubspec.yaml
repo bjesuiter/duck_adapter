@@ -17,6 +17,7 @@ dev_dependencies:
   grinder:
   path:
   enums:
+  logging_handlers:
 
 #dependency_overrides:
 #  transmogrify:
