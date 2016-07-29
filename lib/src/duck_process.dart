@@ -89,6 +89,7 @@ class DuckProcess {
     return runDuck(args);
   }
 
+
   ///Important: syncs two DIRECTORIES!!!
   Future sync(String remotePath, String localPath, {SyncOptions handleExisting}) async {
     var args = [
@@ -130,7 +131,7 @@ class DuckProcess {
   }
 
   ///lists directory content of a remote location
-  ///if longFormat is true, list will provide additional moduification time data and permissions (as mask) for each entry
+  ///if longFormat is true, list will provide additional modification time data and permissions (as mask) for each entry
   Future listRemote(String remoteLocation, {bool longFormat: false}) {
     var command = (longFormat) ? "longlist" : "list";
     var args = [
@@ -170,6 +171,14 @@ class DuckProcess {
 
     _log.fine(args.join(" "));
 
-    return Process.run("duck", args);
+    var result = Process.run("duck", args);
+
+    result.then((processResult) {
+      stdout_controller.add(processResult.stdout);
+    });
+
+    return result;
   }
+
+//TODO: add createTransaction Method
 }
