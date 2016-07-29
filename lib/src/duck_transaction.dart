@@ -9,6 +9,8 @@ import 'dart:async';
 import 'dart:io';
 import 'package:path/path.dart' as path;
 
+
+//rename later to duck process: behave like command line.
 class DuckTransaction {
   final Logger _log = new Logger("duck_adapter.duck_transaction");
 
@@ -59,8 +61,25 @@ class DuckTransaction {
   ///Preserve permissions and modification date for transferred files
   bool preservePermissionsAndModDate;
 
-  DuckTransaction() : mode=TransactionMode.General {
 
+  //TODO: add unit support for throttling (KB, MB, GB)
+  DuckTransaction(this.remoteRoot,
+      {this.user: "",
+      this.externalEditor: "",
+      this.identityFile: "",
+      this.password: "",
+      this.quiet: true,
+      this.verbose: false,
+      this.assume_yes: true,
+      this.preservePermissionsAndModDate: null,
+      this.throttle: 0})
+      : mode = TransactionMode.General {}
+
+  _init() {
+    _url = new path.Context(style: path.Style.url, current: remoteRoot);
+    if (path.url.isRelative(remoteRoot) || path.url.isRootRelative(remoteRoot))
+      throw new path.PathException("remoteRoot is not absolute");
+    if (!remoteRoot.endsWith("/")) remoteRoot += "/";
   }
 
   DuckTransaction.synchronize(this.remoteRoot, SyncOption onExistingFile,
@@ -75,8 +94,9 @@ class DuckTransaction {
       this.throttle: 0})
       : mode = TransactionMode.Synchronize {
     _addCommand(Command.existing, onExistingFile.name);
-    _url = new path.Context(style: path.Style.url, current: remoteRoot);
+    _init();
   }
+
 
   DuckTransaction.upAndDownload(this.remoteRoot, LoadOption onExistingFile,
       {this.user: "",
@@ -90,23 +110,62 @@ class DuckTransaction {
       this.throttle: 0})
       : mode = TransactionMode.UpAndDownload {
     _addCommand(Command.existing, onExistingFile.name);
-    _url = new path.Context(style: path.Style.url, current: remoteRoot);
+    _init();
   }
 
   addUpload(String remotePath, String localPath) {
     if (mode == TransactionMode.Synchronize)
       throw new Exception("Cannot add Upload action to transaction created with new DuckTransaction.synchronize");
+    _addCommand(Command.upload, _url.absolute(remotePath), path.absolute(localPath));
   }
 
-  addDownload() {
+  addDownload(String remotePath, String localPath) {
     if (mode == TransactionMode.Synchronize)
       throw new Exception("Cannot add Download action to transaction created with new DuckTransaction.synchronize");
+    _addCommand(Command.download, _url.absolute(remotePath), path.absolute(localPath));
   }
 
-  addSync() {
+  /// Syncs two directories.
+  addSync(String remotePath, String localPath) {
     if (mode == TransactionMode.UpAndDownload)
       throw new Exception("Cannot add Sync action to transaction created with new DuckTransaction.upAndDownload");
+    _addCommand(Command.synchronize, _url.absolute(remotePath), path.absolute(localPath));
   }
+
+  addDeletion(String remoteLocation) async {
+    _addCommand(Command.delete, _url.absolute(remoteLocation));
+  }
+
+  //TODO: try multiple times on one transaction
+  ///Copy between servers.
+  ///remote location 1 = absolute | relative to this.remoteRoot
+  ///remote location 2 = absolute | relative to this.remoteRoot
+  addServerCopy(String remoteLocation1, String remoteLocation2) {
+    _addCommand(Command.copy, _url.absolute(remoteLocation1), _url.absolute(remoteLocation2));
+  }
+
+  //TODO: Try multiple times on one transaction
+  ///set external application in constructor
+  addRemoteFileEdit(String remoteFile) {
+    if (externalEditor.isEmpty)
+      throw new Exception(
+          "Please specify an external editor when constructing DuckTansaction to use remote file edit functionality.");
+
+    _addCommand(Command.edit, _url.absolute(remoteFile));
+  }
+
+
+  ///lists directory content of a remote location
+  ///if longFormat is true, list will provide additional modification time data and permissions (as mask) for each entry
+  listRemote(String remoteLocation, {bool longFormat: false}) {
+    _addCommand(Command.list, _url.absolute(remoteLocation));
+
+    if (longFormat)
+      _addCommand(Command.longlist);
+
+    //TODO: maybe avoid adding listRemote doubled to one Transaction
+  }
+
 
   _addCommand(Command command, [String arg1 = "", String arg2 = "", String arg3 = ""]) {
     commands.add(command.cliArg);
@@ -119,7 +178,6 @@ class DuckTransaction {
   }
 
   Future<ProcessResult> execute({bool addSessionParams: true}) {
-
     ///add session params
     if (addSessionParams) {
       if (quiet) _addCommand(Command.quiet);
@@ -127,6 +185,8 @@ class DuckTransaction {
       if (verbose) _addCommand(Command.verbose);
 
       if (assume_yes) _addCommand(Command.assumeyes);
+
+      if (externalEditor.isNotEmpty) _addCommand(Command.application, externalEditor);
 
       _addCommand(Command.username, user);
 
@@ -136,8 +196,7 @@ class DuckTransaction {
         _addCommand(Command.password, password);
       }
 
-      if (throttle > 0)
-        _addCommand(Command.throttle, throttle.toString());
+      if (throttle > 0) _addCommand(Command.throttle, throttle.toString());
     }
 
     _log.finest(commands.join(" "));
@@ -150,6 +209,4 @@ class DuckTransaction {
 
     return result;
   }
-
 }
-

@@ -5,6 +5,7 @@ import 'dart:io';
 import 'enums/sync_option.dart';
 import 'enums/load_option.dart';
 import 'duck_transaction.dart';
+import 'enums/command.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
@@ -16,8 +17,6 @@ class DuckProcess {
   final StreamController<String> stdout_controller = new StreamController<String>.broadcast();
 
   Stream<String> get stdout => stdout_controller.stream;
-
-  path.Context _url;
 
   ///path to root folder of remote server
   ///e.g. ftp://<hostname>/
@@ -65,129 +64,18 @@ class DuckProcess {
       this.preservePermissionsAndModDate: null,
       this.throttle: 0
       }) {
-    //TODO: add unit support for throttling (KB, MB, GB)
     //
 
-    if (path.url.isRelative(remoteRoot) || path.url.isRootRelative(remoteRoot))
-      throw new path.PathException("remoteRoot is not absolute");
-    if (!remoteRoot.endsWith("/")) remoteRoot += "/";
-    _url = new path.Context(style: path.Style.url, current: remoteRoot);
   }
 
-  Future upload(String remotePath, String localPath, {LoadOption handleExisting}) async {
-    var args = [
-      "--upload", _url.absolute(remotePath), path.absolute(localPath)
-    ];
+  //cleaned from here down
 
-    if (handleExisting != null)
-      args..add("--existing")..add(handleExisting.name);
-
-    return runDuck(args);
-  }
-
-  Future download(String remotePath, String localPath, {LoadOption handleExisting}) async {
-    var args = [
-      "--download", _url.absolute(remotePath), path.absolute(localPath)
-    ];
-
-    if (handleExisting != null)
-      args..add("--existing")..add(handleExisting.name);
-
-    return runDuck(args);
-  }
-
-
-  ///Important: syncs two DIRECTORIES!!!
-  Future sync(String remotePath, String localPath, {SyncOption handleExisting}) async {
-    var args = [
-      "--synchronize", _url.absolute(remotePath), path.absolute(localPath)
-    ];
-
-    if (handleExisting != null)
-      args..add("--existing")..add(handleExisting.name);
-
-    return runDuck(args);
-  }
-
-  Future delete(String remoteLocation) async {
-    var args = ["--delete", _url.absolute(remoteLocation)];
-    return runDuck(args);
-  }
-
-  ///Copy between servers
-  ///remote location 1 = absolute | relative to this.remoteRoot
-  ///remote location 2 = absolute | relative to this.remoteRoot
-  Future serverCopy(String remoteLocation1, String remoteLocation2) async {
-    //_url context knows root url -> matching is not necessary
-
-    var args = ["--copy", _url.absolute(remoteLocation1), _url.absolute(remoteLocation2)];
-  }
-
-  ///Opens the given file in an external editor
-  ///Uses optional parameter  externalEditor first and this.externalEditor secondly
-  Future editRemoteFile(String remoteFile, {String externalEditor}) async {
-    var editor = externalEditor ?? this.externalEditor;
-    if (editor.isEmpty || !(new File(editor).existsSync()))
-      throw new Exception(
-          "No external editor specified. Please specify external editor with optional param in editRemoteFile"
-              " or set external editor at DuckProcess construction time");
-
-    var args = ["--application", editor, "--edit", remoteFile];
-
-    return runDuck(args);
-  }
-
-  ///lists directory content of a remote location
-  ///if longFormat is true, list will provide additional modification time data and permissions (as mask) for each entry
-  Future listRemote(String remoteLocation, {bool longFormat: false}) {
-    var command = (longFormat) ? "longlist" : "list";
-    var args = [
-      "--$command", _url.absolute(remoteLocation)
-    ];
-
-    return runDuck(args);
-  }
-
-
-  ///only to be feature complete
   Future<String> get version async {
-    ProcessResult processResult = await runDuck(["--version"], addSessionParams: false);
+    ProcessResult processResult = await Process.run("duck", [Command.version.cliArg]);
+    _log.info("Version: ${processResult.stdout}");
     return processResult.stdout;
   }
 
-  Future<ProcessResult> runDuck(List<String> args, {bool addSessionParams: true}) {
-    ///add session params
-    if (addSessionParams) {
-      if (quiet) args.add("--quiet");
-
-      if (verbose) args.add("--verbose");
-
-      if (assume_yes) args.add("--assumeyes");
-
-      args..add("--user")..add(user);
-
-      if (identityFile.isNotEmpty) {
-        args..add("--identity")..add(identityFile);
-      } else if (password.isNotEmpty) {
-        args..add("--password")..add(password);
-      }
-
-      if (throttle > 0)
-        args..add("--throttle")..add(throttle.toString());
-
-      if ()
-    }
-
-    _log.fine(args.join(" "));
-
-    var result = Process.run("duck", args);
-
-    result.then((processResult) {
-      stdout_controller.add(processResult.stdout);
-    });
-
-    return result;
-  }
 
 //TODO: add createTransaction Method
 }
