@@ -2,8 +2,9 @@ library duck_adapter.duck_process;
 
 import 'dart:async';
 import 'dart:io';
-import 'sync_options.dart';
-import 'load_options.dart';
+import 'enums/sync_option.dart';
+import 'enums/load_option.dart';
+import 'duck_transaction.dart';
 import 'package:logging/logging.dart';
 import 'package:path/path.dart' as path;
 
@@ -47,17 +48,23 @@ class DuckProcess {
   ///Throttle bandwidth <bytes per second>
   int throttle;
 
+  ///Preserve permissions and modification date for transferred files
+  bool preservePermissionsAndModDate;
+
   //TODO: Support password authentication as secure as possible
 
   DuckProcess(this.remoteRoot,
-      {this.user: "",
+      {
+      this.user: "",
       this.externalEditor: "",
       this.identityFile: "",
       this.password: "",
       this.quiet: true,
       this.verbose: false,
       this.assume_yes: true,
-      this.throttle: 0}) {
+      this.preservePermissionsAndModDate: null,
+      this.throttle: 0
+      }) {
     //TODO: add unit support for throttling (KB, MB, GB)
     //
 
@@ -67,7 +74,7 @@ class DuckProcess {
     _url = new path.Context(style: path.Style.url, current: remoteRoot);
   }
 
-  Future upload(String remotePath, String localPath, {LoadOptions handleExisting}) async {
+  Future upload(String remotePath, String localPath, {LoadOption handleExisting}) async {
     var args = [
       "--upload", _url.absolute(remotePath), path.absolute(localPath)
     ];
@@ -78,7 +85,7 @@ class DuckProcess {
     return runDuck(args);
   }
 
-  Future download(String remotePath, String localPath, {LoadOptions handleExisting}) async {
+  Future download(String remotePath, String localPath, {LoadOption handleExisting}) async {
     var args = [
       "--download", _url.absolute(remotePath), path.absolute(localPath)
     ];
@@ -91,7 +98,7 @@ class DuckProcess {
 
 
   ///Important: syncs two DIRECTORIES!!!
-  Future sync(String remotePath, String localPath, {SyncOptions handleExisting}) async {
+  Future sync(String remotePath, String localPath, {SyncOption handleExisting}) async {
     var args = [
       "--synchronize", _url.absolute(remotePath), path.absolute(localPath)
     ];
@@ -167,6 +174,8 @@ class DuckProcess {
 
       if (throttle > 0)
         args..add("--throttle")..add(throttle.toString());
+
+      if ()
     }
 
     _log.fine(args.join(" "));
