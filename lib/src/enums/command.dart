@@ -128,6 +128,7 @@ class Command extends Enum {
   // your own implementation
   final String _command;
 
+  ///todo rename cliName
   String get cliArg => "--$_command";
 
   const Command._(this._command);
