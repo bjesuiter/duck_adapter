@@ -3,7 +3,9 @@
 #### Description
 A dart library for using duck cli file transfer tool. 
 This library is intended to be used with [grinder](https://github.com/google/grinder.dart)
-to allow automated deployments.
+to allow automated deployments. 
+
+**NOTE:** This is a personal free time project.
 
     The universal file transfer tool duck which runs in your shell on Linux and OS X 
     or your Windows command line prompt. 
