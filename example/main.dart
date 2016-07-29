@@ -13,6 +13,8 @@ main() {
   Logger.root.level = Level.FINE;
   _libLog.level = Level.FINEST;
 
-  new Session("sftp://ssh.strato.de/",
-      user: "fewo-birkennest.de", identityFile: "/home/bjesuiter/.ssh/fewo-birkennest.de");
+  var duck = new DuckProcess("sftp://ssh.strato.de/",
+      user: "fewo-birkennest.de", identityFile: "/home/bjesuiter/.ssh/fewo-birkennest.de", quiet: false, verbose: true);
+
+  _libLog.info(duck.version);
 }
