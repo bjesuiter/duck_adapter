@@ -1,8 +1,8 @@
 library duck_adapter.commands;
 
 import 'package:enums/enums.dart';
-import 'load_options.dart';
-import 'sync_options.dart';
+import 'load_option.dart';
+import 'sync_option.dart';
 
 ///Command to String mapping of duck cli commands
 class Command extends Enum {
@@ -21,7 +21,7 @@ class Command extends Enum {
   ///
   /// Params: --download <url> <[file]>
   /// Connected Command: existing <option>
-  /// Option can be one of [LoadOptions]
+  /// Option can be one of [LoadOption]
   static const Command download = const Command._("download");
 
   /// Delete.
@@ -32,7 +32,7 @@ class Command extends Enum {
   /// Transfer action for existing files.
   ///
   /// Params: --existing <action>
-  /// Action can be one of [LoadOptions] or [SyncOptions], depending on the used method
+  /// Action can be one of [LoadOption] or [SyncOption], depending on the used method
   static const Command existing = const Command._("existing");
 
   /// Edit file in external editor.
@@ -88,7 +88,7 @@ class Command extends Enum {
   ///
   /// Params: --synchronize <url> <directory>
   /// Connected Command: existing <option>
-  /// Option can be one of [SyncOptions]
+  /// Option can be one of [SyncOption]
   static const Command synchronize = const Command._("synchronize");
 
   /// Throttle bandwidth.
@@ -108,7 +108,7 @@ class Command extends Enum {
   ///
   /// Params: --upload <url> <file>
   /// Connected Command: existing <option>
-  /// Option can be one of [LoadOptions]
+  /// Option can be one of [LoadOption]
   static const Command upload = const Command._("upload");
 
   /// Print transcript.
